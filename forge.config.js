@@ -31,10 +31,11 @@ module.exports = {
 			name: '@electron-forge/publisher-github',
 			config: {
 				repository: {
-					owner: 'me',
+					owner: 'DardanIsufi95',
 					name: 'vchat-toolset',
 				},
 				prerelease: true,
+				authToken: process.env.GITHUB_TOKEN,
 			},
 		},
 	],

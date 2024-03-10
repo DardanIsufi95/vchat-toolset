@@ -5,6 +5,8 @@ const fs = require('fs');
 if (require('electron-squirrel-startup')) {
 	app.quit();
 }
+const { updateElectronApp } = require('update-electron-app');
+updateElectronApp(); // additional configuration options available
 
 const createWindow = () => {
 	// Create the browser window.
