@@ -3,14 +3,27 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>Hello World!</title>
+		<link rel="stylesheet" href="index.css" />
 	</head>
 	<body>
-		<h1>Vchat</h1>
-		<button onclick="start()">LiveCreator</button>
+		<div class="container-fluid">
+			<h1 class="w-100 text-center">Vchat</h1>
+			<div class="d-flex flex-column">
+				<div>
+					<button class="btn btn-primary m-1 w-100" onclick="start('livecreator')">LiveCreator</button>
+				</div>
+				<div>
+					<button class="btn btn-primary m-1 w-100" onclick="start('cam-amateurcommunity')">Cam AmateurCommunity</button>
+				</div>
+				<div>
+					<button class="btn btn-primary m-1 w-100" onclick="start('amateurcommunity')">AmateurCommunity</button>
+				</div>
+			</div>
+		</div>
 	</body>
 	<script>
-		function start() {
-			window.ipcRenderer.invoke('start', 'livecreator');
+		function start(type) {
+			window.ipcRenderer.invoke('start', type);
 		}
 	</script>
 </html>

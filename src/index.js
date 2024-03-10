@@ -11,8 +11,8 @@ updateElectronApp(); // additional configuration options available
 const createWindow = () => {
 	// Create the browser window.
 	const mainWindow = new BrowserWindow({
-		width: 800,
-		height: 600,
+		width: 400,
+		height: 400,
 		webPreferences: {
 			preload: path.join(__dirname, 'preload.js'),
 		},
@@ -72,7 +72,7 @@ if (!executablePath && fs.existsSync(`${process.env['ProgramFiles']}\\Google\\Ch
 if (!executablePath && fs.existsSync(`${process.env['ProgramFiles(x86)']}\\Google\\Chrome\\Application\\chrome.exe`)) {
 	executablePath = `${process.env['ProgramFiles(x86)']}\\Google\\Chrome\\Application\\chrome.exe`;
 }
-console.log(process.env);
+
 if (!executablePath && fs.existsSync(`${process.env['TMP'].replace('\\Temp', '')}\\Google\\Chrome\\Application\\chrome.exe`)) {
 	executablePath = `${process.env['TMP'].replace('\\Temp', '')}\\Google\\Chrome\\Application\\chrome.exe`;
 }
@@ -83,6 +83,7 @@ if (!executablePath) {
 }
 
 ipcMain.handle('start', async (event, arg) => {
+	console.log('start', arg);
 	if (!browser) {
 		browser = await puppeteer.launch({
 			headless: false,
