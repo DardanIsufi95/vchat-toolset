@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Hello World!</title>
+	</head>
+	<body>
+		<h1>Vchat</h1>
+		<button onclick="start()">LiveCreator</button>
+	</body>
+	<script>
+		function start() {
+			window.ipcRenderer.invoke('start', 'livecreator');
+		}
+	</script>
+</html>
