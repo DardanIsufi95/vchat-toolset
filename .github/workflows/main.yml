@@ -19,7 +19,7 @@ jobs:
               run: npm i
             - name: Install WiX Toolset
               if: runner.os == 'Windows'
-              run: choco install wixtoolset
+              run: echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" >> $GITHUB_PATH
             - name: Build Electron app
               run: npm run make
             - name: Publish to GitHub Releases
