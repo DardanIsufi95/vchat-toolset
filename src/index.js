@@ -2,14 +2,16 @@ const { app, BrowserWindow, ipcMain, Menu, autoUpdater } = require('electron');
 const path = require('path');
 const fs = require('fs');
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
+const server = 'https://update.electronjs.org';
+const feed = `${server}/DardanIsufi95/vchat-toolset/${process.platform}-${process.arch}/${app.getVersion()}`;
+autoUpdater.setFeedURL(feed);
+setInterval(() => {
+	autoUpdater.checkForUpdates();
+}, 10 * 60 * 1000);
+
 if (require('electron-squirrel-startup')) {
 	app.quit();
 }
-const updateServer = 'https://update.electronjs.org';
-const repository = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json')).toString()).repository.url;
-const feedURL = `${updateServer}/${repo}/${process.platform}-${process.arch}/${app.getVersion()}`;
-
-autoUpdater.setFeedURL({ url: feedURL });
 
 const createWindow = () => {
 	autoUpdater.checkForUpdates();
