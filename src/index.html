@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Vchat Launcher</title>
+		<link rel="stylesheet" href="index.css" />
+	</head>
+	<body>
+		<!-- <div id="loading" class="d-flex justify-content-center align-items-center">
+			<div class="spinner-border" role="status">
+				<span class="visually-hidden">Loading...</span>
+			</div>
+		</div> -->
+		<div class="container-fluid">
+			<h1 class="w-100 text-center">Vchat</h1>
+			<div class="d-flex flex-column">
+				<div>
+					<button class="btn btn-primary m-1 w-100" onclick="start('livecreator')">LiveCreator</button>
+				</div>
+				<div>
+					<button class="btn btn-primary m-1 w-100" onclick="start('cam-amateurcommunity')">Cam AmateurCommunity</button>
+				</div>
+				<!-- <div>
+					<button class="btn btn-primary m-1 w-100" onclick="start('amateurcommunity')">AmateurCommunity</button>
+				</div> -->
+			</div>
+		</div>
+	</body>
+	<script>
+		function start(type) {
+			window.ipcRenderer.invoke('start', type);
+		}
+	</script>
+</html>
