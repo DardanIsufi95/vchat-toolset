@@ -1,14 +1,29 @@
+<<<<<<< HEAD
 const { app, BrowserWindow, ipcMain } = require('electron');
+=======
+const { app, BrowserWindow, ipcMain, Menu, autoUpdater } = require('electron');
+>>>>>>> main
 const path = require('path');
 const fs = require('fs');
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
 	app.quit();
 }
+<<<<<<< HEAD
 const { updateElectronApp } = require('update-electron-app');
 updateElectronApp(); // additional configuration options available
 
 const createWindow = () => {
+=======
+const updateServer = 'https://update.electronjs.org';
+const repository = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json')).toString()).repository.url;
+const feedURL = `${updateServer}/${repo}/${process.platform}-${process.arch}/${app.getVersion()}`;
+
+autoUpdater.setFeedURL({ url: feedURL });
+
+const createWindow = () => {
+	autoUpdater.checkForUpdates();
+>>>>>>> main
 	// Create the browser window.
 	const mainWindow = new BrowserWindow({
 		width: 400,
@@ -17,10 +32,20 @@ const createWindow = () => {
 			preload: path.join(__dirname, 'preload.js'),
 		},
 	});
+<<<<<<< HEAD
 
 	// and load the index.html of the app.
 	mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
+=======
+	Menu.setApplicationMenu(null);
+	// and load the index.html of the app.
+	mainWindow.loadFile(path.join(__dirname, 'index.html'));
+
+	setTimeout(() => {
+		mainWindow.webContents.send('stopLoading');
+	}, 1000 * 5);
+>>>>>>> main
 	// Open the DevTools.
 	//mainWindow.webContents.openDevTools();
 };
@@ -59,6 +84,7 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+<<<<<<< HEAD
 
 const puppeteer = require('puppeteer-core');
 let browser = null;
@@ -132,3 +158,6 @@ ipcMain.handle('start', async (event, arg) => {
 app.on('before-quit', () => {
 	if (browser) browser.close();
 });
+=======
+require('./main');
+>>>>>>> main

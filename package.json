@@ -22,6 +22,7 @@
 		"@electron-forge/plugin-fuses": "^7.2.0",
 		"@electron-forge/publisher-github": "^7.3.0",
 		"@electron/fuses": "^1.7.0",
+		"dotenv": "^16.4.5",
 		"electron": "29.1.1"
 	},
 	"keywords": [],
@@ -37,6 +38,6 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/DardanIsufi95/vchat-toolset.git"
+		"url": "https://github.com/DardanIsufi95/vchat-toolset"
 	}
 }
