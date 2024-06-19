@@ -10,6 +10,11 @@ if (!executablePath) {
 	app.quit();
 }
 
+ipcMain.handle('get-version', async (event, arg) => {
+	console.log('get-version', app.getVersion());
+	return app.getVersion();
+});
+
 ipcMain.handle('start', async (event, arg) => {
 	console.log('start', arg);
 	if (!browser) {
@@ -46,7 +51,7 @@ ipcMain.handle('start', async (event, arg) => {
 	// 			return;
 	// 		}
 
-	// 		const auth = await fetch('http://localhost:5000/api/v1/auth/token', {
+	// 		const auth = await fetch('https://api.v-chat-app.com/api/v1/auth/token', {
 	// 			method: 'POST',
 	// 			headers: {
 	// 				'Content-Type': 'application/json',
@@ -72,7 +77,7 @@ ipcMain.handle('start', async (event, arg) => {
 	// 			return;
 	// 		}
 	// 		page.access_token = auth.access_token;
-	// 		const credentials = await fetch('http://localhost:5000/api/v1/external/credentials', {
+	// 		const credentials = await fetch('https://api.v-chat-app.com/api/v1/external/credentials', {
 	// 			headers: {
 	// 				Authorization: `Bearer ${auth.access_token}`,
 	// 			},
@@ -121,7 +126,7 @@ ipcMain.handle('start', async (event, arg) => {
 	// 		const data = await response.json();
 	// 		console.log('response', page.access_token);
 
-	// 		fetch('http://localhost:5000/api/v1/external/online', {
+	// 		fetch('https://api.v-chat-app.com/api/v1/external/online', {
 	// 			method: 'PUT',
 	// 			headers: {
 	// 				Authorization: `Bearer ${page.access_token}`,
@@ -214,6 +219,19 @@ async function startLivecreator(browser) {
 			page.isAuth = true;
 		}
 
+		if (response.url().includes(intercept) && response.url().endsWith('message') && response.status() === 200) {
+			const data = await response.json();
+			console.log('message', JSON.stringify(data));
+			fetch('https://api.v-chat-app.com/api/v1/external/message', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${page.access_token}`,
+				},
+				body: JSON.stringify(data),
+			});
+		}
+
 		return response;
 	});
 
@@ -280,7 +298,7 @@ async function startCamAmateurCommunity(browser) {
 }
 
 async function getTokenAndCredentials({ username, password }) {
-	const auth = await fetch('http://localhost:5000/api/v1/auth/token', {
+	const auth = await fetch('https://api.v-chat-app.com/api/v1/auth/token', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -298,14 +316,15 @@ async function getTokenAndCredentials({ username, password }) {
 			throw new Error('Network response was not ok.');
 		})
 		.catch((error) => {
+			console.log('error', error);
 			return null;
 		});
-
+	console.log('auth', auth);
 	if (!auth || !auth.access_token) {
 		return;
 	}
 
-	const credentials = await fetch('http://localhost:5000/api/v1/external/credentials', {
+	const credentials = await fetch('https://api.v-chat-app.com/api/v1/external/credentials', {
 		headers: {
 			Authorization: `Bearer ${auth.access_token}`,
 		},
@@ -331,7 +350,7 @@ async function getTokenAndCredentials({ username, password }) {
 	};
 }
 async function setOnline({ access_token }) {
-	fetch('http://localhost:5000/api/v1/external/online', {
+	fetch('https://api.v-chat-app.com/api/v1/external/online', {
 		method: 'PUT',
 		headers: {
 			Authorization: `Bearer ${access_token}`,
@@ -345,7 +364,7 @@ async function setOnline({ access_token }) {
 		});
 }
 async function ping({ access_token }) {
-	fetch('http://localhost:5000/api/v1/external/ping', {
+	fetch('https://api.v-chat-app.com/api/v1/external/ping', {
 		method: 'POST',
 		headers: {
 			Authorization: `Bearer ${access_token}`,

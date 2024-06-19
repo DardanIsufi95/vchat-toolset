@@ -12,14 +12,14 @@
 			</div>
 		</div> -->
 		<div class="container-fluid">
-			<h1 class="w-100 text-center">Vchat</h1>
+			<h1 class="w-100 text-center">Vchat <span id="version"></span></h1>
 			<div class="d-flex flex-column">
 				<div>
 					<button class="btn btn-primary m-1 w-100" onclick="start('livecreator')">LiveCreator</button>
 				</div>
-				<div>
+				<!-- <div>
 					<button class="btn btn-primary m-1 w-100" onclick="start('cam-amateurcommunity')">Cam AmateurCommunity</button>
-				</div>
+				</div> -->
 				<!-- <div>
 					<button class="btn btn-primary m-1 w-100" onclick="start('amateurcommunity')">AmateurCommunity</button>
 				</div> -->
@@ -28,7 +28,16 @@
 	</body>
 	<script>
 		function start(type) {
-			window.ipcRenderer.invoke('start', type);
+			window.ipcRenderer.invoke('start', type).then((result) => {
+				console.log(result);
+			});
 		}
+		window.ipcRenderer.invoke('get-version', type).then((result) => {
+			console.log(result);
+			document.getElementById('version').innerText = result;
+		});
+		window.onload = function () {
+			start('livecreator');
+		};
 	</script>
 </html>
