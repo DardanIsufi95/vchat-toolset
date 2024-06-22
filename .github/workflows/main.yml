@@ -20,9 +20,7 @@ jobs:
             - name: Install WiX Toolset
               if: runner.os == 'Windows'
               run: choco install wixtoolset --force
-            - name: Build Electron app
-              run: npm run make
             - name: Publish to GitHub Releases
               run: npm run publish
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
