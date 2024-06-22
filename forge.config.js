@@ -35,7 +35,7 @@ module.exports = {
 					owner: 'DardanIsufi95',
 					name: 'vchat-toolset',
 				},
-				authToken: process.env.GH_TOKEN,
+				authToken: process.env.GITHUB_TOKEN,
 				generateReleaseNotes: true,
 				prerelease: false,
 				draft: false,
