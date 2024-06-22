@@ -11,16 +11,37 @@ jobs:
         strategy:
             matrix:
                 os: [windows-latest]
+
         steps:
             - uses: actions/checkout@v3
             - uses: actions/setup-node@v3
               with:
                   node-version: '20' # Adjust if needed
+
+            - name: Cache npm dependencies
+              uses: actions/cache@v3
+              with:
+                  path: ~/.npm
+                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-node-
+
             - name: Install dependencies
-              run: npm i
-            - name: Install WiX Toolset
+              run: npm ci
+
+            - name: Cache WiX Toolset
               if: runner.os == 'Windows'
+              uses: actions/cache@v3
+              with:
+                  path: C:\Program Files (x86)\WiX Toolset v3.11\
+                  key: ${{ runner.os }}-wixtoolset-v3.11
+                  restore-keys: |
+                      ${{ runner.os }}-wixtoolset-
+
+            - name: Install WiX Toolset
+              if: runner.os == 'Windows' && steps.cache-wixtoolset.outputs.cache-hit != 'true'
               run: choco install wixtoolset --force
+
             - name: Publish to GitHub Releases
               run: npm run publish
               env:
