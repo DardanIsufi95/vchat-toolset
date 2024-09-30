@@ -15,7 +15,8 @@ module.exports = {
 				authors: 'Dardan Isufi',
 				description: 'My Electron Application',
 				exe: 'vchat-toolset.exe',
-				noMsi: true,
+				noMsi: false,
+				remoteReleases: 'https://toolset.v-chat-app.com',
 				createDesktopShortcut: true, // Ensure a desktop shortcut is created
 				shortcutFolderName: 'VChat Toolset',
 			},
