@@ -1,20 +1,22 @@
 const { app, BrowserWindow, ipcMain, Menu, autoUpdater } = require('electron');
+const { updateElectronApp, UpdateSourceType } = require('update-electron-app');
+updateElectronApp();
 const path = require('path');
 const fs = require('fs');
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-const server = 'https://update.electronjs.org';
-const feed = `${server}/DardanIsufi95/vchat-toolset/${process.platform}-${process.arch}/${app.getVersion()}`;
-autoUpdater.setFeedURL(feed);
-setInterval(() => {
-	autoUpdater.checkForUpdates();
-}, 10 * 60 * 1000);
+// // Handle creating/removing shortcuts on Windows when installing/uninstalling.
+// const server = 'https://update.electronjs.org';
+// const feed = `${server}/DardanIsufi95/vchat-toolset/${process.platform}-${process.arch}/${app.getVersion()}`;
+// autoUpdater.setFeedURL(feed);
+// setInterval(() => {
+// 	autoUpdater.checkForUpdates();
+// }, 10 * 60 * 1000);
 
-if (require('electron-squirrel-startup')) {
-	app.quit();
-}
+// if (require('electron-squirrel-startup')) {
+// 	app.quit();
+// }
 
+updateElectronApp();
 const createWindow = () => {
-	autoUpdater.checkForUpdates();
 	// Create the browser window.
 	const mainWindow = new BrowserWindow({
 		width: 400,
