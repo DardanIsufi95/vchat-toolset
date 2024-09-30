@@ -18,7 +18,6 @@ module.exports = {
 				noMsi: true,
 				createDesktopShortcut: true, // Ensure a desktop shortcut is created
 				shortcutFolderName: 'VChat Toolset',
-				noDelta: true,
 			},
 		},
 		{
