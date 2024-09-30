@@ -1,6 +1,5 @@
 const { app, BrowserWindow, ipcMain, Menu, autoUpdater } = require('electron');
 const { updateElectronApp, UpdateSourceType } = require('update-electron-app');
-updateElectronApp();
 const path = require('path');
 const fs = require('fs');
 
