@@ -167,72 +167,177 @@ setInterval(() => {
 	}
 }, 60000);
 
+// async function startLivecreator(browser) {
+// 	const pageUrl = 'https://livecreator.com';
+// 	const intercept = 'api.livecreator.com';
+// 	const page = await browser.newPage();
+// 	page.setRequestInterception(true);
+// 	page.on('request', async (interceptedRequest) => {
+// 		//console.log('request', interceptedRequest.url().includes(pageUrl));
+// 		if (interceptedRequest.isInterceptResolutionHandled()) return;
+// 		if (interceptedRequest.url().includes(intercept) && interceptedRequest.url().endsWith('oauth/token') && interceptedRequest.method() === 'DELETE') {
+// 			page.close();
+// 			return;
+// 		}
+// 		if (interceptedRequest.url().includes(intercept) && interceptedRequest.url().endsWith('oauth/token') && interceptedRequest.method() === 'POST') {
+// 			const postDataRaw = interceptedRequest.postData();
+// 			const postData = postDataRaw ? JSON.parse(postDataRaw) : {};
+// 			//console.log('postData', postData, interceptedRequest.url().includes(pageUrl), interceptedRequest.url());
+// 			if (postData.grant_type != 'password') {
+// 				interceptedRequest.continue();
+// 				return;
+// 			}
+// 			//console.log('postData', postData);
+// 			const { access_token, credentials } = await getTokenAndCredentials({ username: postData.username.replace('@vchat.com', ''), password: postData.password });
+// 			//console.log('access_token', access_token, credentials);
+// 			if (!access_token || !credentials) {
+// 				interceptedRequest.continue();
+// 				return;
+// 			}
+// 			//console.log('access_token', access_token, credentials);
+// 			page.access_token = access_token;
+
+// 			try {
+// 				interceptedRequest.continue({
+// 					postData: JSON.stringify({
+// 						...postData,
+// 						username: credentials.email,
+// 						password: credentials.password,
+// 					}),
+// 				});
+
+// 				return;
+// 			} catch (e) {
+// 				console.log('error', e);
+// 			}
+// 		}
+// 		interceptedRequest.continue();
+// 	});
+// 	page.on('response', async (response) => {
+// 		if (response.url().includes(intercept) && response.url().endsWith('oauth/token') && response.status() === 200 && page.access_token) {
+// 			setOnline({ access_token: page.access_token });
+// 			page.isAuth = true;
+// 		}
+
+// 		if (response.url().includes(intercept) && response.url().endsWith('message') && response.status() === 200) {
+// 			const data = await response.json();
+// 			console.log('message', JSON.stringify(data));
+// 			fetch('https://api.v-chat-app.com/api/v1/external/message', {
+// 				method: 'POST',
+// 				headers: {
+// 					'Content-Type': 'application/json',
+// 					Authorization: `Bearer ${page.access_token}`,
+// 				},
+// 				body: JSON.stringify(data),
+// 			});
+// 		}
+
+// 		return response;
+// 	});
+
+// 	await page.goto(pageUrl);
+// }
 async function startLivecreator(browser) {
 	const pageUrl = 'https://livecreator.com';
-	const intercept = 'api.livecreator.com';
+	const apiIntercept = 'api.livecreator.com';
 	const page = await browser.newPage();
+
+	// Enable request interception
 	page.setRequestInterception(true);
+
 	page.on('request', async (interceptedRequest) => {
-		//console.log('request', interceptedRequest.url().includes(pageUrl));
-		if (interceptedRequest.isInterceptResolutionHandled()) return;
-		if (interceptedRequest.url().includes(intercept) && interceptedRequest.url().endsWith('oauth/token') && interceptedRequest.method() === 'DELETE') {
-			page.close();
-			return;
-		}
-		if (interceptedRequest.url().includes(intercept) && interceptedRequest.url().endsWith('oauth/token') && interceptedRequest.method() === 'POST') {
-			const postDataRaw = interceptedRequest.postData();
-			const postData = postDataRaw ? JSON.parse(postDataRaw) : {};
-			//console.log('postData', postData, interceptedRequest.url().includes(pageUrl), interceptedRequest.url());
-			if (postData.grant_type != 'password') {
-				interceptedRequest.continue();
-				return;
-			}
-			//console.log('postData', postData);
-			const { access_token, credentials } = await getTokenAndCredentials({ username: postData.username.replace('@vchat.com', ''), password: postData.password });
-			//console.log('access_token', access_token, credentials);
-			if (!access_token || !credentials) {
-				interceptedRequest.continue();
-				return;
-			}
-			//console.log('access_token', access_token, credentials);
-			page.access_token = access_token;
+		try {
+			const requestUrl = interceptedRequest.url();
+			const isAuthToken = requestUrl.includes(apiIntercept) && requestUrl.endsWith('oauth/token');
+			const isDelete = interceptedRequest.method() === 'DELETE';
+			const isPost = interceptedRequest.method() === 'POST';
 
-			try {
-				interceptedRequest.continue({
-					postData: JSON.stringify({
-						...postData,
-						username: credentials.email,
-						password: credentials.password,
-					}),
-				});
+			// Close the page if a DELETE request is made to the oauth token endpoint
+			if (isAuthToken && isDelete) {
+				await page.close();
+				return;
+			}
+
+			// Handle POST request to oauth/token
+			if (isAuthToken && isPost) {
+				const postDataRaw = interceptedRequest.postData();
+				const postData = postDataRaw ? JSON.parse(postDataRaw) : {};
+
+				// Only intercept when grant_type is 'password'
+				if (postData.grant_type !== 'password') {
+					interceptedRequest.continue();
+					return;
+				}
+
+				// Try to fetch token and credentials using provided username and password
+				try {
+					const result = await getTokenAndCredentials({
+						username: postData.username.replace('@vchat.com', ''),
+						password: postData.password,
+					});
+
+					// Validate result structure
+					if (!result || typeof result !== 'object' || !result.access_token || !result.credentials) {
+						console.error('Malformed result from getTokenAndCredentials:', result);
+						interceptedRequest.continue(); // Continue the request if the result is invalid
+						return;
+					}
+
+					const { access_token, credentials } = result;
+					page.access_token = access_token;
+
+					// Modify and continue the intercepted request
+					interceptedRequest.continue({
+						postData: JSON.stringify({
+							...postData,
+							username: credentials.email,
+							password: credentials.password,
+						}),
+					});
+				} catch (error) {
+					// Log the error and continue the original request without modifying
+					console.error('Error fetching token and credentials:', error);
+					interceptedRequest.continue();
+				}
 
 				return;
-			} catch (e) {
-				console.log('error', e);
 			}
+
+			// Continue with the original request if no conditions match
+			interceptedRequest.continue();
+		} catch (err) {
+			console.error('Error in request interception:', err);
+			interceptedRequest.abort();
 		}
-		interceptedRequest.continue();
 	});
+
 	page.on('response', async (response) => {
-		if (response.url().includes(intercept) && response.url().endsWith('oauth/token') && response.status() === 200 && page.access_token) {
-			setOnline({ access_token: page.access_token });
-			page.isAuth = true;
-		}
+		try {
+			const responseUrl = response.url();
+			const isAuthToken = responseUrl.includes(apiIntercept) && responseUrl.endsWith('oauth/token');
+			const isMessage = responseUrl.includes(apiIntercept) && responseUrl.endsWith('message');
 
-		if (response.url().includes(intercept) && response.url().endsWith('message') && response.status() === 200) {
-			const data = await response.json();
-			console.log('message', JSON.stringify(data));
-			fetch('https://api.v-chat-app.com/api/v1/external/message', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${page.access_token}`,
-				},
-				body: JSON.stringify(data),
-			});
-		}
+			// Store access token on successful oauth/token response
+			if (isAuthToken && response.status() === 200 && page.access_token) {
+				setOnline({ access_token: page.access_token });
+				page.isAuth = true;
+			}
 
-		return response;
+			// Forward message response to external API
+			if (isMessage && response.status() === 200) {
+				const data = await response.json();
+				await fetch('https://api.v-chat-app.com/api/v1/external/message', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${page.access_token}`,
+					},
+					body: JSON.stringify(data),
+				});
+			}
+		} catch (err) {
+			console.error('Error in response handling:', err);
+		}
 	});
 
 	await page.goto(pageUrl);
