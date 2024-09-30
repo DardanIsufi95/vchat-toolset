@@ -21,7 +21,7 @@ const createWindow = () => {
 			preload: path.join(__dirname, 'preload.js'),
 		},
 	});
-	//Menu.setApplicationMenu(null);
+	Menu.setApplicationMenu(null);
 	// and load the index.html of the app.
 	mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
