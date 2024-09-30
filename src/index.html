@@ -32,12 +32,11 @@
 				console.log(result);
 			});
 		}
-		window.ipcRenderer.invoke('get-version', type).then((result) => {
-			console.log(result);
-			document.getElementById('version').innerText = result;
+		addEventListener('load', (event) => {
+			window.ipcRenderer.invoke('get-version').then((result) => {
+				console.log(result);
+				document.getElementById('version').innerText = result;
+			});
 		});
-		window.onload = function () {
-			start('livecreator');
-		};
 	</script>
 </html>

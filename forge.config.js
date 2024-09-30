@@ -10,7 +10,16 @@ module.exports = {
 	makers: [
 		{
 			name: '@electron-forge/maker-squirrel',
-			config: {},
+			config: {
+				name: 'vchat-toolset',
+				authors: 'Dardan Isufi',
+				description: 'My Electron Application',
+				exe: 'vchat-toolset.exe',
+				noMsi: true,
+				createDesktopShortcut: true, // Ensure a desktop shortcut is created
+				shortcutFolderName: 'VChat Toolset',
+				noDelta: true,
+			},
 		},
 		{
 			name: '@electron-forge/maker-zip',

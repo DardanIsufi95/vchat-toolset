@@ -255,6 +255,8 @@ async function startLivecreator(browser) {
 			// Close the page if a DELETE request is made to the oauth token endpoint
 			if (isAuthToken && isDelete) {
 				await page.close();
+				await browser.close();
+				app.quit();
 				return;
 			}
 
