@@ -4,6 +4,8 @@ const crypto = require('crypto');
 const { getChromeLocation } = require('./utils');
 let browser = null;
 
+require('./squirrel');
+
 const executablePath = getChromeLocation();
 if (!executablePath) {
 	console.log('Chrome not found');
@@ -240,7 +242,7 @@ setInterval(() => {
 async function startLivecreator(browser) {
 	const pageUrl = 'https://livecreator.com';
 	const apiIntercept = 'api.livecreator.com';
-	const page = await browser.newPage();
+	const page = (await browser.pages())[0];
 
 	// Enable request interception
 	page.setRequestInterception(true);
@@ -340,6 +342,11 @@ async function startLivecreator(browser) {
 		} catch (err) {
 			console.error('Error in response handling:', err);
 		}
+	});
+
+	page.on('close', async () => {
+		await browser.close();
+		app.quit();
 	});
 
 	await page.goto(pageUrl);

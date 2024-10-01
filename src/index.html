@@ -14,9 +14,9 @@
 		<div class="container-fluid">
 			<h1 class="w-100 text-center">Vchat <span id="version"></span></h1>
 			<div class="d-flex flex-column">
-				<div>
+				<!-- <div>
 					<button class="btn btn-primary m-1 w-100" onclick="start('livecreator')">LiveCreator</button>
-				</div>
+				</div> -->
 				<!-- <div>
 					<button class="btn btn-primary m-1 w-100" onclick="start('cam-amateurcommunity')">Cam AmateurCommunity</button>
 				</div> -->
@@ -37,6 +37,7 @@
 				console.log(result);
 				document.getElementById('version').innerText = result;
 			});
+			start('livecreator');
 		});
 	</script>
 </html>
