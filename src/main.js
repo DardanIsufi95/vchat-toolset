@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain, ipcRenderer } = require('electron');
 const puppeteer = require('puppeteer-core');
 const crypto = require('crypto');
 const { getChromeLocation } = require('./utils');
+const os = require('os');
+const path = require('path');
 let browser = null;
 
 require('./squirrel');
@@ -16,15 +18,22 @@ ipcMain.handle('get-version', async (event, arg) => {
 	console.log('get-version', app.getVersion());
 	return app.getVersion();
 });
-
+console.log();
 ipcMain.handle('start', async (event, arg) => {
 	console.log('start', arg);
 	if (!browser) {
+		const userInfo = os.userInfo();
+		const username = userInfo.username;
+		//const chromeUserDataPath = path.join('C:\\', 'Users', username, 'AppData', 'Local', 'Google', 'Chrome', 'User Data');
+		const chromeUserDataPath = path.join('.', 'userdata');
+		//console.log('defaultArgs', puppeteer.defaultArgs());
 		browser = await puppeteer.launch({
 			headless: false,
 			defaultViewport: null,
-			args: ['--start-maximized', '--no-sandbox', '--disable-setuid-sandbox'],
+			args: ['--start-maximized', '--disable-infobars'],
 			executablePath: executablePath,
+			userDataDir: chromeUserDataPath,
+			ignoreDefaultArgs: ['--disable-extensions', '--enable-automation'],
 		});
 		browser.on('disconnected', () => {
 			browser = null;
@@ -239,6 +248,14 @@ setInterval(() => {
 
 // 	await page.goto(pageUrl);
 // }
+
+JSON.tryParse = (str) => {
+	try {
+		return JSON.parse(str);
+	} catch (e) {
+		return null;
+	}
+};
 async function startLivecreator(browser) {
 	const pageUrl = 'https://livecreator.com';
 	const apiIntercept = 'api.livecreator.com';
@@ -250,23 +267,26 @@ async function startLivecreator(browser) {
 	page.on('request', async (interceptedRequest) => {
 		try {
 			const requestUrl = interceptedRequest.url();
-			const isAuthToken = requestUrl.includes(apiIntercept) && requestUrl.endsWith('oauth/token');
-			const isDelete = interceptedRequest.method() === 'DELETE';
-			const isPost = interceptedRequest.method() === 'POST';
 
-			// Close the page if a DELETE request is made to the oauth token endpoint
-			if (isAuthToken && isDelete) {
-				await page.close();
-				await browser.close();
-				app.quit();
+			if (!requestUrl.includes(apiIntercept)) {
+				interceptedRequest.continue();
 				return;
 			}
 
+			const isPost = interceptedRequest.method() === 'POST';
+
+			if (!isPost) {
+				interceptedRequest.continue();
+				return;
+			}
+
+			const isAuthToken = requestUrl.includes(apiIntercept) && requestUrl.endsWith('oauth/token');
+			const isMessage = requestUrl.includes(apiIntercept) && requestUrl.endsWith('message');
+			const postDataRaw = isPost && interceptedRequest.postData();
+			const postData = postDataRaw ? JSON.tryParse(postDataRaw) : {};
+
 			// Handle POST request to oauth/token
 			if (isAuthToken && isPost) {
-				const postDataRaw = interceptedRequest.postData();
-				const postData = postDataRaw ? JSON.parse(postDataRaw) : {};
-
 				// Only intercept when grant_type is 'password'
 				if (postData.grant_type !== 'password') {
 					interceptedRequest.continue();
@@ -278,6 +298,9 @@ async function startLivecreator(browser) {
 					const result = await getTokenAndCredentials({
 						username: postData.username.replace('@vchat.com', ''),
 						password: postData.password,
+					}).catch((error) => {
+						console.error('Error fetching token and credentials:', error);
+						return null;
 					});
 
 					// Validate result structure
@@ -307,24 +330,63 @@ async function startLivecreator(browser) {
 				return;
 			}
 
+			if (isMessage && isPost && postData?.body) {
+				console.log('message intercepted');
+				const checkMsg = await fetch('https://only-chat.net/checkmsg.php', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ msg: postData?.body }),
+				})
+					.then((response) => response.text())
+					.then((data) => {
+						console.log(data);
+						return JSON.parse(data?.trim());
+					})
+					.catch((error) => {
+						checkMsg.isAllow = true;
+					});
+
+				if (!checkMsg?.isAllow) {
+					page.evaluate((checkMsg) => {
+						alert(checkMsg?.ErrorMsg);
+					}, checkMsg);
+					interceptedRequest.abort();
+					return;
+				}
+			}
+
 			// Continue with the original request if no conditions match
 			interceptedRequest.continue();
 		} catch (err) {
 			console.error('Error in request interception:', err);
-			interceptedRequest.abort();
+			interceptedRequest.continue();
 		}
 	});
 
 	page.on('response', async (response) => {
 		try {
+			//console.log('response', response);
 			const responseUrl = response.url();
 			const isAuthToken = responseUrl.includes(apiIntercept) && responseUrl.endsWith('oauth/token');
 			const isMessage = responseUrl.includes(apiIntercept) && responseUrl.endsWith('message');
+			const isDelete = response.request().method() === 'DELETE';
 
 			// Store access token on successful oauth/token response
 			if (isAuthToken && response.status() === 200 && page.access_token) {
 				setOnline({ access_token: page.access_token });
 				page.isAuth = true;
+			}
+
+			//console.log('response', responseUrl, response.request().method(), response.status());
+			// Close the page if a DELETE request is made to the oauth token endpoint
+			if (isAuthToken && isDelete) {
+				console.log('Closing page due to DELETE request to oauth/token');
+				await page.close();
+				await browser.close();
+				app.quit();
+				return;
 			}
 
 			// Forward message response to external API
